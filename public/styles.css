@@ -185,6 +185,15 @@ table.standings { width: 100%; border-collapse: collapse; font-size: 14px; }
 .standings tr.qualify .pos { color: var(--green); }
 .standings tr.qualify { box-shadow: inset 3px 0 0 var(--green); }
 
+/* ---------- Botões de ação do admin ---------- */
+.admin-actions { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+.mini {
+  font-size: 12px; padding: 6px 10px; border-radius: 8px; font-weight: 700;
+  border: 1px solid var(--border); background: var(--panel-2); color: var(--text); cursor: pointer;
+}
+.mini:hover { border-color: var(--red); }
+.mini.danger { color: var(--red-2); border-color: var(--red-dark); }
+
 .muted { color: var(--muted); }
 .error { color: var(--red-2); font-size: 14px; margin-top: 10px; min-height: 18px; }
 .empty { text-align: center; color: var(--muted); padding: 30px 10px; }

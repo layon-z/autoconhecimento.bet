@@ -354,6 +354,42 @@ async function loadRanking() {
 // ============================================================
 // ADMIN
 // ============================================================
+async function adminAction(act, id, name) {
+  try {
+    if (act === 'add') {
+      const v = prompt(`Quanto ADICIONAR ao saldo de ${name}?\n(use número negativo pra TIRAR, ex: -10)`, '10');
+      if (v === null) return;
+      const amount = Number(String(v).replace(',', '.'));
+      if (!isFinite(amount)) return alert('Valor inválido.');
+      const r = await api('/api/admin-action', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'addBalance', userId: id, amount }),
+      });
+      alert(`✅ Saldo de ${r.name} agora: ${money(r.balance)}`);
+    } else if (act === 'set') {
+      const v = prompt(`DEFINIR o saldo de ${name} para quanto?`, '50');
+      if (v === null) return;
+      const amount = Number(String(v).replace(',', '.'));
+      if (!isFinite(amount)) return alert('Valor inválido.');
+      const r = await api('/api/admin-action', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'setBalance', userId: id, amount }),
+      });
+      alert(`✅ Saldo de ${r.name} definido para ${money(r.balance)}`);
+    } else if (act === 'remove') {
+      if (!confirm(`Remover ${name}?\nIsso apaga a conta e TODAS as apostas dele. Não dá pra desfazer.`)) return;
+      const r = await api('/api/admin-action', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'removeUser', userId: id }),
+      });
+      alert(`🗑️ ${r.removed} removido.`);
+    }
+    loadAdmin();
+  } catch (e) {
+    alert('Erro: ' + e.message);
+  }
+}
+
 async function loadAdmin() {
   const el = $('view-admin');
   el.innerHTML = '<div class="empty">Carregando painel...</div>';
@@ -376,6 +412,11 @@ async function loadAdmin() {
         <div>
           <div style="font-weight:700">${p.name}${p.is_admin ? ' 👑' : ''}</div>
           <div class="muted" style="font-size:12px">${p.bets} apostas · ${p.won}V/${p.lost}D · ${p.open} em aberto</div>
+          <div class="admin-actions">
+            <button class="mini" data-act="add" data-id="${p.id}" data-name="${p.name}">💰 Saldo</button>
+            <button class="mini" data-act="set" data-id="${p.id}" data-name="${p.name}">✏️ Definir</button>
+            ${p.is_admin ? '' : `<button class="mini danger" data-act="remove" data-id="${p.id}" data-name="${p.name}">🗑️ Remover</button>`}
+          </div>
         </div>
         <div style="text-align:right">
           <div style="font-weight:800;color:var(--gold)">${money(p.balance)}</div>
@@ -384,6 +425,10 @@ async function loadAdmin() {
       </div>`;
     }).join('') + '</div>';
     el.innerHTML = html;
+
+    el.querySelectorAll('.mini').forEach((btn) =>
+      btn.addEventListener('click', () => adminAction(btn.dataset.act, btn.dataset.id, btn.dataset.name))
+    );
   } catch (e) {
     el.innerHTML = `<div class="empty">Erro: ${e.message}</div>`;
   }
