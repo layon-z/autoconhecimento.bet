@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(npx --yes vercel@latest --version)",
+      "Read(//c/Users/mitra/AppData/Roaming/npm//**)",
+      "Read(//c/Users/mitra/AppData/Roaming/npm/node_modules/npm/**)",
+      "Bash(node \"/c/Program Files/nodejs/node_modules/npm/bin/npm-cli.js\" --version)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}

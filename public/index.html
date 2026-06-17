@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoConhecimento.Bet — Copa 2026</title>
+  <meta name="theme-color" content="#0a0a0c" />
+  <link rel="icon" href="assets/logo.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="center-screen">
+    <div class="brand">
+      <div class="badge">
+        <span class="crown">👑</span>
+        <img src="assets/edu.jpg" alt="EDU — fundador"
+             onerror="this.src='assets/logo.svg'" />
+        <span class="ball">⚽</span>
+      </div>
+      <h1>AutoConhecimento<span class="dot">.Bet</span></h1>
+      <span class="tag">Copa do Mundo 2026 🏆</span>
+      <div class="founder">★ Casa fundada por EDU ★</div>
+    </div>
+
+    <div class="card" style="width:100%;max-width:380px">
+      <label for="name">Seu nome</label>
+      <input id="name" autocomplete="off" placeholder="Ex: Edu" maxlength="20" />
+      <label for="pin">PIN (4 dígitos)</label>
+      <input id="pin" type="password" inputmode="numeric" placeholder="••••" maxlength="4" />
+      <div style="height:14px"></div>
+      <button class="btn" id="enterBtn">Entrar / Criar conta</button>
+      <div class="error" id="err"></div>
+      <p class="muted" style="font-size:12px;margin-top:12px;text-align:center">
+        Primeira vez? É só escolher um nome e um PIN — sua conta é criada na hora
+        com <b style="color:var(--gold)">R$ 50 fictícios</b>. 🎰
+      </p>
+    </div>
+    <div class="footer">⚫🔴 Aposta de brincadeira • sem dinheiro real ⚫🔴</div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const err = $('err');
+
+    async function enter() {
+      const name = $('name').value.trim();
+      const pin = $('pin').value.trim();
+      err.textContent = '';
+      if (name.length < 2) return (err.textContent = 'Digite um nome válido.');
+      if (!/^\d{4}$/.test(pin)) return (err.textContent = 'O PIN precisa ter 4 números.');
+
+      $('enterBtn').disabled = true;
+      $('enterBtn').textContent = 'Entrando...';
+      try {
+        const r = await fetch('/api/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, pin }),
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.error || 'Erro ao entrar.');
+        window.location.href = '/app.html';
+      } catch (e) {
+        err.textContent = e.message;
+        $('enterBtn').disabled = false;
+        $('enterBtn').textContent = 'Entrar / Criar conta';
+      }
+    }
+
+    $('enterBtn').addEventListener('click', enter);
+    $('pin').addEventListener('keydown', (e) => e.key === 'Enter' && enter());
+  </script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoConhecimento.Bet</title>
+  <meta name="theme-color" content="#0a0a0c" />
+  <link rel="icon" href="assets/logo.svg" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand-mini">
+      <img src="assets/edu.jpg" onerror="this.src='assets/logo.svg'" alt="logo" />
+      <span>AutoConhecimento<span style="color:var(--red)">.Bet</span></span>
+    </div>
+    <div class="balance-pill">💰 <span id="balance">R$ --</span></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="games">⚽ Jogos</div>
+    <div class="tab" data-tab="bets">🎟️ Minhas apostas</div>
+    <div class="tab" data-tab="ranking">🏆 Ranking</div>
+    <div class="tab hidden" data-tab="admin" id="adminTab">🛠️ Admin</div>
+  </div>
+
+  <div class="container">
+    <div id="view-games"></div>
+    <div id="view-bets" class="hidden"></div>
+    <div id="view-ranking" class="hidden"></div>
+    <div id="view-admin" class="hidden"></div>
+    <div class="footer">
+      Olá, <b id="hiName">jogador</b> ·
+      <a href="#" id="logout">sair</a><br/>
+      ⚫🔴 Aposta de brincadeira • Copa 2026 • sem dinheiro real
+    </div>
+  </div>
+
+  <!-- Modal de aposta -->
+  <div id="modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px">
+    <div class="card" style="width:100%;max-width:380px;margin:0">
+      <h3 id="modalTitle" style="margin-bottom:4px">Apostar</h3>
+      <p class="muted" id="modalSub" style="font-size:13px;margin-bottom:12px"></p>
+      <label>Valor da aposta (R$)</label>
+      <input id="stake" type="number" min="0.5" step="0.5" placeholder="Ex: 10" />
+      <p class="muted" style="font-size:13px;margin-top:10px">
+        Retorno se ganhar: <b id="potential" style="color:var(--gold)">R$ 0,00</b>
+      </p>
+      <div class="error" id="modalErr"></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn ghost" id="cancelBet">Cancelar</button>
+        <button class="btn" id="confirmBet">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

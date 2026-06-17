@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#2a0000"/>
+      <stop offset="100%" stop-color="#0a0a0c"/>
+    </radialGradient>
+    <linearGradient id="red" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff2d24"/>
+      <stop offset="100%" stop-color="#8a0400"/>
+    </linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="98" fill="url(#bg)"/>
+  <circle cx="100" cy="100" r="92" fill="none" stroke="url(#red)" stroke-width="6"/>
+  <!-- star (founder) -->
+  <path d="M100 26 l7 16 17 2 -13 12 4 17 -15 -9 -15 9 4 -17 -13 -12 17 -2 z" fill="#ffcc33"/>
+  <!-- monogram AC -->
+  <text x="100" y="118" font-family="Arial, sans-serif" font-size="62" font-weight="900"
+        fill="#f4f4f5" text-anchor="middle" letter-spacing="-4">AC</text>
+  <!-- ball -->
+  <text x="100" y="166" font-size="30" text-anchor="middle">⚽</text>
+</svg>

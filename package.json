@@ -1,0 +1,10 @@
+{
+  "name": "autoconhecimento-bet",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AutoConhecimento.Bet - bolão de apostas fictícias da Copa 2026 entre amigos",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  }
+}
