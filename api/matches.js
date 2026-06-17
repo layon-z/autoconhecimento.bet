@@ -1,5 +1,5 @@
 // GET /api/matches  -> lista de jogos da Copa com odds calculadas
-import { getMatches, flagOf, settleOpenBets, hasDB } from '../lib/util.js';
+import { getMatches, flagCode, settleOpenBets, hasDB } from '../lib/util.js';
 
 export default async function handler(req, res) {
   try {
@@ -12,8 +12,8 @@ export default async function handler(req, res) {
 
     const withFlags = matches.map((m) => ({
       ...m,
-      homeFlag: flagOf(m.homeTeam),
-      awayFlag: flagOf(m.awayTeam),
+      homeCode: flagCode(m.homeTeam),
+      awayCode: flagCode(m.awayTeam),
     }));
     // ordena: ao vivo > próximos > encerrados, depois por data
     const order = { live: 0, upcoming: 1, done: 2 };

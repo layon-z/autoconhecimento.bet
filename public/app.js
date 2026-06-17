@@ -87,6 +87,14 @@ function section(title, list) {
   return `<div class="section-title">${title}</div>` + list.map(matchCard).join('');
 }
 
+// Bandeira como imagem (flagcdn.com). Se faltar o código, mostra bandeira branca.
+function flagImg(code) {
+  if (!code) return '<span class="flag">🏳️</span>';
+  return `<img class="flag-img" src="https://flagcdn.com/w80/${code}.png"
+    srcset="https://flagcdn.com/w160/${code}.png 2x" alt="" loading="lazy"
+    onerror="this.outerHTML='<span class=&quot;flag&quot;>🏳️</span>'">`;
+}
+
 function matchCard(m) {
   const statusHtml =
     m.phase === 'live' ? '<span class="status-live">● AO VIVO</span>'
@@ -111,9 +119,9 @@ function matchCard(m) {
   <div class="match">
     <div class="head"><span>${m.group || 'Copa 2026'}</span><span>${statusHtml}</span></div>
     <div class="teams">
-      <div class="team"><span class="flag">${m.homeFlag}</span><span class="name">${m.homeTeam}</span></div>
+      <div class="team">${flagImg(m.homeCode)}<span class="name">${m.homeTeam}</span></div>
       <div class="score">${score}</div>
-      <div class="team"><span class="flag">${m.awayFlag}</span><span class="name">${m.awayTeam}</span></div>
+      <div class="team">${flagImg(m.awayCode)}<span class="name">${m.awayTeam}</span></div>
     </div>
     ${odds}
   </div>`;
