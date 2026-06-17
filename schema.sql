@@ -1,19 +1,24 @@
 -- ============================================================
 -- AutoConhecimento.Bet — esquema do banco (rodar no Supabase)
 -- SQL Editor > New query > colar tudo > Run
+-- ⚠️ Este script APAGA e recria as tabelas (reset).
 -- ============================================================
 
-create table if not exists users (
-  id         uuid primary key default gen_random_uuid(),
-  name       text not null,
-  name_key   text not null unique,          -- nome em minúsculas (login único)
-  pin_hash   text not null,
+drop table if exists bets;
+drop table if exists users;
+
+-- Perfil do jogador. O "id" é o mesmo do usuário do Supabase Auth.
+create table users (
+  id         uuid primary key,              -- = id do Supabase Auth
+  name       text not null,                 -- nome de usuário (login, exibido)
+  name_key   text not null unique,          -- nome em minúsculas (único)
+  email      text,
   balance    numeric not null default 50,
   is_admin   boolean not null default false,
   created_at timestamptz not null default now()
 );
 
-create table if not exists bets (
+create table bets (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references users(id) on delete cascade,
   match_id   text not null,
@@ -24,7 +29,7 @@ create table if not exists bets (
   odd        numeric not null,
   status     text not null default 'OPEN',  -- OPEN | WON | LOST
   payout     numeric not null default 0,
-  result     text,                          -- HOME | DRAW | AWAY (preenchido ao resolver)
+  result     text,
   created_at timestamptz not null default now()
 );
 

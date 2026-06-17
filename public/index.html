@@ -22,53 +22,113 @@
       <div class="founder">★ Casa fundada por EDU ★</div>
     </div>
 
-    <div class="card" style="width:100%;max-width:380px">
-      <label for="name">Seu nome</label>
-      <input id="name" autocomplete="off" placeholder="Ex: Edu" maxlength="20" />
-      <label for="pin">PIN (4 dígitos)</label>
-      <input id="pin" type="password" inputmode="numeric" placeholder="••••" maxlength="4" />
-      <div style="height:14px"></div>
-      <button class="btn" id="enterBtn">Entrar / Criar conta</button>
+    <div class="card" style="width:100%;max-width:390px">
+      <!-- Alternador Entrar / Criar conta -->
+      <div class="tabs" style="padding:0;margin-bottom:16px">
+        <div class="tab active" id="tab-login" style="flex:1;text-align:center">Entrar</div>
+        <div class="tab" id="tab-register" style="flex:1;text-align:center">Criar conta</div>
+      </div>
+
+      <!-- ENTRAR -->
+      <div id="form-login">
+        <label for="l-user">Nome de usuário</label>
+        <input id="l-user" autocomplete="username" placeholder="seu_usuario" maxlength="20" />
+        <label for="l-pass">Senha</label>
+        <input id="l-pass" type="password" autocomplete="current-password" placeholder="••••••" />
+        <div style="height:14px"></div>
+        <button class="btn" id="loginBtn">Entrar</button>
+      </div>
+
+      <!-- CRIAR CONTA -->
+      <div id="form-register" class="hidden">
+        <label for="r-user">Nome de usuário <span class="muted">(único)</span></label>
+        <input id="r-user" autocomplete="username" placeholder="seu_usuario" maxlength="20" />
+        <label for="r-email">E-mail</label>
+        <input id="r-email" type="email" autocomplete="email" placeholder="voce@email.com" />
+        <label for="r-pass">Senha <span class="muted">(mín. 6 caracteres)</span></label>
+        <input id="r-pass" type="password" autocomplete="new-password" placeholder="••••••" />
+        <div style="height:14px"></div>
+        <button class="btn" id="registerBtn">Criar conta</button>
+        <p class="muted" style="font-size:12px;margin-top:12px;text-align:center">
+          Você recebe <b style="color:var(--gold)">R$ 50 fictícios</b> ao confirmar o e-mail. 🎰
+        </p>
+      </div>
+
       <div class="error" id="err"></div>
-      <p class="muted" style="font-size:12px;margin-top:12px;text-align:center">
-        Primeira vez? É só escolher um nome e um PIN — sua conta é criada na hora
-        com <b style="color:var(--gold)">R$ 50 fictícios</b>. 🎰
-      </p>
+      <div id="ok" style="color:var(--green);font-size:14px;margin-top:10px;text-align:center"></div>
     </div>
     <div class="footer">⚫🔴 Aposta de brincadeira • sem dinheiro real ⚫🔴</div>
   </div>
 
   <script>
     const $ = (id) => document.getElementById(id);
-    const err = $('err');
+    const err = $('err'), ok = $('ok');
 
-    async function enter() {
-      const name = $('name').value.trim();
-      const pin = $('pin').value.trim();
-      err.textContent = '';
-      if (name.length < 2) return (err.textContent = 'Digite um nome válido.');
-      if (!/^\d{4}$/.test(pin)) return (err.textContent = 'O PIN precisa ter 4 números.');
+    // Alternar abas
+    function show(mode) {
+      err.textContent = ''; ok.textContent = '';
+      const isLogin = mode === 'login';
+      $('tab-login').classList.toggle('active', isLogin);
+      $('tab-register').classList.toggle('active', !isLogin);
+      $('form-login').classList.toggle('hidden', !isLogin);
+      $('form-register').classList.toggle('hidden', isLogin);
+    }
+    $('tab-login').addEventListener('click', () => show('login'));
+    $('tab-register').addEventListener('click', () => show('register'));
 
-      $('enterBtn').disabled = true;
-      $('enterBtn').textContent = 'Entrando...';
+    async function post(url, body) {
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error || 'Erro.');
+      return data;
+    }
+
+    // ENTRAR
+    async function doLogin() {
+      err.textContent = ''; ok.textContent = '';
+      const username = $('l-user').value.trim();
+      const password = $('l-pass').value;
+      if (!username || !password) return (err.textContent = 'Preencha usuário e senha.');
+      $('loginBtn').disabled = true; $('loginBtn').textContent = 'Entrando...';
       try {
-        const r = await fetch('/api/auth', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, pin }),
-        });
-        const data = await r.json();
-        if (!r.ok) throw new Error(data.error || 'Erro ao entrar.');
+        await post('/api/login', { username, password });
         window.location.href = '/app.html';
       } catch (e) {
         err.textContent = e.message;
-        $('enterBtn').disabled = false;
-        $('enterBtn').textContent = 'Entrar / Criar conta';
+        $('loginBtn').disabled = false; $('loginBtn').textContent = 'Entrar';
       }
     }
 
-    $('enterBtn').addEventListener('click', enter);
-    $('pin').addEventListener('keydown', (e) => e.key === 'Enter' && enter());
+    // CRIAR CONTA
+    async function doRegister() {
+      err.textContent = ''; ok.textContent = '';
+      const username = $('r-user').value.trim();
+      const email = $('r-email').value.trim();
+      const password = $('r-pass').value;
+      if (username.length < 2) return (err.textContent = 'Escolha um nome de usuário.');
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return (err.textContent = 'E-mail inválido.');
+      if (password.length < 6) return (err.textContent = 'A senha precisa de ao menos 6 caracteres.');
+      $('registerBtn').disabled = true; $('registerBtn').textContent = 'Criando...';
+      try {
+        const data = await post('/api/register', { username, email, password });
+        show('login');
+        $('l-user').value = username;
+        ok.textContent = data.message || 'Conta criada! Confirme o e-mail e faça login.';
+      } catch (e) {
+        err.textContent = e.message;
+      } finally {
+        $('registerBtn').disabled = false; $('registerBtn').textContent = 'Criar conta';
+      }
+    }
+
+    $('loginBtn').addEventListener('click', doLogin);
+    $('registerBtn').addEventListener('click', doRegister);
+    $('l-pass').addEventListener('keydown', (e) => e.key === 'Enter' && doLogin());
+    $('r-pass').addEventListener('keydown', (e) => e.key === 'Enter' && doRegister());
   </script>
 </body>
 </html>
