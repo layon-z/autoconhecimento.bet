@@ -13,6 +13,19 @@ export default async function handler(req, res) {
     startBalance: ENV.START_BALANCE,
   };
 
+  // Limpeza do usuário de teste (uso único, protegido por token)
+  if (hasDB() && req.query && req.query.kill === 'limpa-teste-9z') {
+    try {
+      const r = await fetch(`${ENV.SUPABASE_URL}/rest/v1/users?name_key=eq.teste_diag`, {
+        method: 'DELETE',
+        headers: { apikey: ENV.SUPABASE_KEY, Authorization: `Bearer ${ENV.SUPABASE_KEY}` },
+      });
+      out.cleanup = `deletou teste_diag (HTTP ${r.status})`;
+    } catch (e) {
+      out.cleanupError = e.message;
+    }
+  }
+
   // Teste real de leitura na tabela users
   if (hasDB()) {
     try {
