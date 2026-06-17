@@ -30,7 +30,7 @@ let MATCHES = [];
     $('balance').textContent = money(user.balance);
     if (user.is_admin) $('adminTab').classList.remove('hidden');
   } catch (_) { return; }
-  loadGames();
+  loadToday();
 })();
 
 // ---------- Tabs ----------
@@ -39,10 +39,12 @@ document.querySelectorAll('.tab').forEach((t) => {
     document.querySelectorAll('.tab').forEach((x) => x.classList.remove('active'));
     t.classList.add('active');
     const tab = t.dataset.tab;
-    ['games', 'bets', 'ranking', 'admin'].forEach((v) =>
+    ['today', 'games', 'groups', 'bets', 'ranking', 'admin'].forEach((v) =>
       $('view-' + v).classList.toggle('hidden', v !== tab)
     );
+    if (tab === 'today') loadToday();
     if (tab === 'games') loadGames();
+    if (tab === 'groups') loadGroups();
     if (tab === 'bets') loadBets();
     if (tab === 'ranking') loadRanking();
     if (tab === 'admin') loadAdmin();
@@ -58,29 +60,153 @@ $('logout').addEventListener('click', async (e) => {
 // ============================================================
 // JOGOS
 // ============================================================
+async function fetchMatches() {
+  const { matches } = await api('/api/matches');
+  MATCHES = matches;
+  return matches;
+}
+function bindOdds(el) {
+  el.querySelectorAll('.odd-btn').forEach((b) =>
+    b.addEventListener('click', () => openBet(b.dataset.match, b.dataset.sel))
+  );
+}
+
+// ---- Helpers de data (no fuso do navegador = horário do Brasil) ----
+const dayKey = (iso) => new Date(iso).toLocaleDateString('pt-BR');
+function dayLabel(iso) {
+  const d = new Date(iso);
+  const today = new Date();
+  const tomorrow = new Date(); tomorrow.setDate(today.getDate() + 1);
+  const k = dayKey(iso);
+  if (k === today.toLocaleDateString('pt-BR')) return 'Hoje';
+  if (k === tomorrow.toLocaleDateString('pt-BR')) return 'Amanhã';
+  return d.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' });
+}
+function untilLabel(iso) {
+  const diff = new Date(iso) - new Date();
+  if (diff <= 0) return '';
+  const h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000);
+  if (h >= 24) return `em ${Math.floor(h / 24)}d`;
+  if (h > 0) return `começa em ${h}h${m > 0 ? ' ' + m + 'min' : ''}`;
+  return `começa em ${m}min`;
+}
+
+// ============================================================
+// ⭐ HOJE (tela inicial)
+// ============================================================
+async function loadToday() {
+  const el = $('view-today');
+  el.innerHTML = '<div class="empty">Carregando... ⚽</div>';
+  try {
+    const matches = await fetchMatches();
+    const tk = new Date().toLocaleDateString('pt-BR');
+    const live = matches.filter((m) => m.phase === 'live');
+    const todays = matches.filter((m) => m.phase !== 'live' && dayKey(m.utcDate) === tk);
+
+    let html = '';
+    if (live.length) html += section('🔴 AO VIVO AGORA', live);
+    if (todays.length) html += section('📅 JOGOS DE HOJE', todays);
+    if (!live.length && !todays.length) {
+      const next = matches.filter((m) => m.phase === 'upcoming').slice(0, 6);
+      html = '<div class="empty">Sem jogos hoje. 👀 Mas vem mais aí:</div>';
+      if (next.length) html += section('📅 PRÓXIMOS JOGOS', next);
+    }
+    el.innerHTML = html || '<div class="empty">Nenhum jogo disponível.</div>';
+    bindOdds(el);
+  } catch (e) {
+    el.innerHTML = `<div class="empty">Erro: ${e.message}</div>`;
+  }
+}
+
+// ============================================================
+// ⚽ JOGOS (todos, separados por data)
+// ============================================================
 async function loadGames() {
   const el = $('view-games');
   el.innerHTML = '<div class="empty">Carregando jogos da Copa... ⚽</div>';
   try {
-    const { matches } = await api('/api/matches');
-    MATCHES = matches;
+    const matches = await fetchMatches();
     if (!matches.length) { el.innerHTML = '<div class="empty">Nenhum jogo disponível.</div>'; return; }
 
-    const groups = { live: [], upcoming: [], done: [] };
-    matches.forEach((m) => groups[m.phase].push(m));
+    const live = matches.filter((m) => m.phase === 'live');
+    const upcoming = matches.filter((m) => m.phase === 'upcoming');
+    const done = matches.filter((m) => m.phase === 'done');
 
     let html = '';
-    if (groups.live.length) html += section('🔴 AO VIVO', groups.live);
-    if (groups.upcoming.length) html += section('📅 PRÓXIMOS JOGOS', groups.upcoming);
-    if (groups.done.length) html += section('✅ ENCERRADOS', groups.done);
-    el.innerHTML = html;
+    if (live.length) html += section('🔴 AO VIVO', live);
 
-    el.querySelectorAll('.odd-btn').forEach((b) =>
-      b.addEventListener('click', () => openBet(b.dataset.match, b.dataset.sel))
-    );
+    const byDay = {};
+    upcoming.forEach((m) => { (byDay[dayKey(m.utcDate)] ||= []).push(m); });
+    Object.values(byDay)
+      .sort((a, b) => new Date(a[0].utcDate) - new Date(b[0].utcDate))
+      .forEach((list) => { html += section('📅 ' + dayLabel(list[0].utcDate), list); });
+
+    if (done.length) html += section('✅ ENCERRADOS', done.slice().reverse().slice(0, 30));
+    el.innerHTML = html || '<div class="empty">Nenhum jogo.</div>';
+    bindOdds(el);
   } catch (e) {
     el.innerHTML = `<div class="empty">Erro: ${e.message}</div>`;
   }
+}
+
+// ============================================================
+// 📊 GRUPOS (classificação real)
+// ============================================================
+let GROUPS = [];
+let selectedGroup = null;
+const groupLetter = (s) => (String(s || '').toUpperCase().match(/([A-L])(?!.*[A-L])/) || [])[1] || '';
+
+async function loadGroups() {
+  const el = $('view-groups');
+  el.innerHTML = '<div class="empty">Carregando classificações... 📊</div>';
+  try {
+    if (!MATCHES.length) await fetchMatches();
+    const { standings } = await api('/api/standings');
+    GROUPS = standings || [];
+    if (!GROUPS.length) {
+      el.innerHTML = '<div class="empty">A tabela dos grupos aparece quando a fase de grupos começar. ⚽</div>';
+      return;
+    }
+    if (!selectedGroup || !GROUPS.find((g) => g.group === selectedGroup)) selectedGroup = GROUPS[0].group;
+    renderGroups();
+  } catch (e) {
+    el.innerHTML = `<div class="empty">Erro: ${e.message}</div>`;
+  }
+}
+
+function renderGroups() {
+  const el = $('view-groups');
+  const chips = GROUPS.map((g) =>
+    `<div class="gchip ${g.group === selectedGroup ? 'active' : ''}" data-g="${g.group}">${g.group.replace('Grupo ', '')}</div>`
+  ).join('');
+
+  const g = GROUPS.find((x) => x.group === selectedGroup) || GROUPS[0];
+  const rows = g.table.map((r) => `
+    <tr class="${r.position <= 2 ? 'qualify' : ''}">
+      <td class="pos">${r.position}</td>
+      <td class="tname">${flagImg(r.code)}<span>${r.team}</span></td>
+      <td><b>${r.points}</b></td><td>${r.played}</td><td>${r.won}</td>
+      <td>${r.draw}</td><td>${r.lost}</td><td>${r.gd > 0 ? '+' : ''}${r.gd}</td>
+    </tr>`).join('');
+
+  const letter = groupLetter(selectedGroup);
+  const gm = MATCHES.filter((m) => groupLetter(m.group) === letter);
+
+  el.innerHTML = `
+    <div class="gchips">${chips}</div>
+    <div class="card" style="padding:0;overflow:hidden;margin-bottom:6px">
+      <table class="standings">
+        <thead><tr><th>#</th><th class="l">Time</th><th>Pts</th><th>J</th><th>V</th><th>E</th><th>D</th><th>SG</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <p class="muted" style="font-size:12px;text-align:center;margin:0 0 14px">🟢 Os 2 primeiros se classificam</p>
+    ${gm.length ? '<div class="section-title">JOGOS DO GRUPO</div>' + gm.map(matchCard).join('') : ''}
+  `;
+  el.querySelectorAll('.gchip').forEach((c) =>
+    c.addEventListener('click', () => { selectedGroup = c.dataset.g; renderGroups(); })
+  );
+  bindOdds(el);
 }
 
 function section(title, list) {
@@ -96,10 +222,11 @@ function flagImg(code) {
 }
 
 function matchCard(m) {
+  const until = m.phase === 'upcoming' ? untilLabel(m.utcDate) : '';
   const statusHtml =
     m.phase === 'live' ? '<span class="status-live">● AO VIVO</span>'
     : m.phase === 'done' ? '<span class="status-done">Encerrado</span>'
-    : fmtDate(m.utcDate);
+    : `${fmtDate(m.utcDate)}${until ? ` · ${until}` : ''}`;
 
   const score = (m.phase === 'live' || m.phase === 'done')
     ? `${m.homeScore ?? 0} <span class="vs">x</span> ${m.awayScore ?? 0}`

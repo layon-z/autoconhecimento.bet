@@ -163,6 +163,28 @@ label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 6px
 .badge-lost { color: var(--muted); font-weight: 800; }
 .badge-open { color: var(--gold); font-weight: 800; }
 
+/* ---------- Grupos: chips ---------- */
+.gchips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 2px 14px; }
+.gchip {
+  min-width: 40px; text-align: center; padding: 9px 12px; border-radius: 10px;
+  background: var(--panel); border: 1px solid var(--border); color: var(--muted);
+  font-weight: 800; cursor: pointer;
+}
+.gchip.active { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* ---------- Tabela de classificação ---------- */
+table.standings { width: 100%; border-collapse: collapse; font-size: 14px; }
+.standings th, .standings td { padding: 10px 6px; text-align: center; }
+.standings th { font-size: 11px; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); }
+.standings th.l, .standings td.tname { text-align: left; }
+.standings tbody tr { border-bottom: 1px solid var(--border); }
+.standings tbody tr:last-child { border-bottom: none; }
+.standings .pos { color: var(--muted); font-weight: 800; width: 26px; }
+.standings .tname { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.standings .tname .flag-img { width: 26px; height: 18px; border-radius: 3px; object-fit: cover; }
+.standings tr.qualify .pos { color: var(--green); }
+.standings tr.qualify { box-shadow: inset 3px 0 0 var(--green); }
+
 .muted { color: var(--muted); }
 .error { color: var(--red-2); font-size: 14px; margin-top: 10px; min-height: 18px; }
 .empty { text-align: center; color: var(--muted); padding: 30px 10px; }
