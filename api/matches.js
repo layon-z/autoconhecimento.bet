@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     );
     // Não cachear na borda: garante dados sempre frescos e evita "exemplos" presos no cache
     res.setHeader('Cache-Control', 'no-store');
-    return res.status(200).json({ build: 'anon-check-1', matches: withFlags });
+    return res.status(200).json({ matches: withFlags });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
