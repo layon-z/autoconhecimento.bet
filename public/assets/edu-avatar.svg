@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="red" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff2d24"/>
+      <stop offset="100%" stop-color="#a30300"/>
+    </linearGradient>
+    <radialGradient id="bg" cx="50%" cy="38%" r="78%">
+      <stop offset="0%" stop-color="#1e1e24"/>
+      <stop offset="100%" stop-color="#0a0a0c"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="200" height="200" fill="url(#bg)"/>
+
+  <g fill="url(#red)">
+    <!-- ombros / busto -->
+    <ellipse cx="100" cy="222" rx="84" ry="60"/>
+    <!-- pescoço -->
+    <rect x="82" y="126" width="36" height="38"/>
+    <!-- rosto / cabeça -->
+    <ellipse cx="100" cy="112" rx="41" ry="47"/>
+    <!-- massa do cabelo -->
+    <ellipse cx="100" cy="78" rx="55" ry="51"/>
+    <!-- cachos (contorno do afro) -->
+    <circle cx="52" cy="64" r="22"/>
+    <circle cx="66" cy="42" r="23"/>
+    <circle cx="84" cy="31" r="22"/>
+    <circle cx="100" cy="28" r="22"/>
+    <circle cx="116" cy="31" r="22"/>
+    <circle cx="134" cy="42" r="23"/>
+    <circle cx="148" cy="64" r="22"/>
+    <circle cx="50" cy="90" r="20"/>
+    <circle cx="150" cy="90" r="20"/>
+    <circle cx="58" cy="76" r="20"/>
+    <circle cx="142" cy="76" r="20"/>
+  </g>
+</svg>
