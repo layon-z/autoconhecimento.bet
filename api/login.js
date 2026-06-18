@@ -1,5 +1,5 @@
 // POST /api/login  { username, password }  -> entra com usuário + senha
-import { hasDB, hasAuth, sbSelect, gotruePasswordLogin, makeSessionCookie } from '../lib/util.js';
+import { hasDB, hasAuth, sbSelect, sbUpdate, gotruePasswordLogin, makeSessionCookie } from '../lib/util.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método inválido.' });
@@ -25,6 +25,11 @@ export default async function handler(req, res) {
       if (/not.?confirmed|confirm/.test(txt))
         return res.status(403).json({ error: 'Confirme seu e-mail antes de entrar (olhe sua caixa de entrada/spam).' });
       return res.status(401).json({ error: 'Usuário ou senha incorretos.' });
+    }
+
+    // Logou = e-mail já confirmado. Marca como confirmado p/ aparecer no ranking/admin.
+    if (user.confirmed === false) {
+      try { await sbUpdate('users', `id=eq.${user.id}`, { confirmed: true }); } catch (_) { /* coluna ainda não existe */ }
     }
 
     res.setHeader('Set-Cookie', makeSessionCookie(user.id));

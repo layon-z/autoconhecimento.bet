@@ -7,7 +7,13 @@ export default async function handler(req, res) {
   if (!user.is_admin) return res.status(403).json({ error: 'Acesso restrito ao admin.' });
 
   try {
-    const users = await sbSelect('users', 'select=id,name,balance,is_admin,created_at&order=balance.desc');
+    // Só conta usuários confirmados (com fallback caso a coluna ainda não exista)
+    let users;
+    try {
+      users = await sbSelect('users', 'select=id,name,balance,is_admin,created_at&confirmed=eq.true&order=balance.desc');
+    } catch (_) {
+      users = await sbSelect('users', 'select=id,name,balance,is_admin,created_at&order=balance.desc');
+    }
     const bets = await sbSelect('bets', 'select=user_id,stake,payout,status');
 
     const stats = {};

@@ -15,6 +15,7 @@ create table users (
   email      text,
   balance    numeric not null default 50,
   is_admin   boolean not null default false,
+  confirmed  boolean not null default false,  -- vira true no 1º login (após confirmar e-mail)
   created_at timestamptz not null default now()
 );
 
