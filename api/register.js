@@ -42,13 +42,17 @@ export default async function handler(req, res) {
     const authId = signup.data?.user?.id || signup.data?.id;
     if (!authId) return res.status(500).json({ error: 'Não foi possível criar a conta.' });
 
+    // A PRIMEIRA conta criada vira admin; as demais, jogadores normais.
+    const anyUser = await sbSelect('users', 'select=id&limit=1');
+    const isFirst = anyUser.length === 0;
+
     await sbInsert('users', {
       id: authId,
       name: username,
       name_key: nameKey,
       email,
       balance: ENV.START_BALANCE,
-      is_admin: nameKey === ENV.ADMIN_NAME,
+      is_admin: isFirst,
     });
 
     return res.status(200).json({
